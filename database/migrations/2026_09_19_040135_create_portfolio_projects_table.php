@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('portfolio_projects', function (Blueprint $table) {
+            $table->id();
+            $table->string('title_en');
+            $table->string('title_id')->nullable();
+            $table->text('description_en')->nullable();
+            $table->text('description_id')->nullable();
+            $table->string('image')->nullable();
+            $table->string('link')->nullable();
+            $table->string('category')->nullable();
+            $table->string('year')->nullable();
+            $table->string('tags')->nullable();
+            $table->string('top_label')->nullable();
+            $table->text('action_icon')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('portfolio_projects');
+    }
+};
