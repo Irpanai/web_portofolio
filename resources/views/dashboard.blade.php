@@ -150,12 +150,16 @@
                             <div style="flex-grow: 1;">
                                 <div class="d-flex justify-between" style="margin-bottom: 4px;">
                                     <h3 style="font-size: 12px; font-weight: 600;">Hero Portrait Asset</h3>
-                                    <span class="mono text-xs text-muted" id="hero-image-status">WEBP / 1.2 MB</span>
+                                    <span class="mono text-xs text-muted" id="hero-image-status">{{ str_starts_with($data['hero_image'] ?? '', 'data:') ? 'BASE64 SYNCED' : 'IMAGE LOADED' }}</span>
                                 </div>
                                 <p class="text-muted text-xs" style="margin-bottom: 12px;">Optimal dimension: 1600x1200px. High contrast recommended. Center focal point.</p>
                                 <div class="d-flex gap-1" style="margin-bottom: 12px;">
                                     <button type="button" class="btn btn-outline mono text-xs" onclick="document.getElementById('hero-image-file').click()">REPLACE MEDIA</button>
                                     <button type="button" class="btn btn-ghost mono text-xs" onclick="removeHeroImage()">REMOVE ASSET</button>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label class="form-label" style="font-size: 10px;">ATAU PASTE URL GAMBAR LANGSUNG (HTTPS)</label>
+                                    <input type="text" id="input-hero-image-url" class="form-input" style="font-size: 11px; padding: 6px 10px;" placeholder="https://example.com/foto.jpg" value="{{ str_starts_with($data['hero_image'] ?? '', 'http') ? ($data['hero_image'] ?? '') : '' }}" oninput="if(this.value.trim()){ document.getElementById('input-hero-image').value = this.value.trim(); document.getElementById('hero-image-thumb').src = this.value.trim(); document.getElementById('hero-image-status').innerText = 'URL LINKED'; }">
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <div class="d-flex justify-between" style="margin-bottom: 4px;">
@@ -760,9 +764,9 @@
         const formData = new FormData();
         formData.append('image', file);
 
-        document.getElementById('hero-image-status').innerText = 'UPLOADING...';
+        document.getElementById('hero-image-status').innerText = 'OPTIMIZING & UPLOADING...';
 
-        fetch('{{ route('dashboard.upload.image') }}', {
+        fetch('{{ route('dashboard.upload.hero') }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -775,7 +779,11 @@
             if (response.ok && data && data.success) {
                 document.getElementById('hero-image-thumb').src = data.url;
                 document.getElementById('input-hero-image').value = data.url;
-                document.getElementById('hero-image-status').innerText = 'UPLOADED';
+                if(document.getElementById('input-hero-image-url')) {
+                    document.getElementById('input-hero-image-url').value = '';
+                }
+                document.getElementById('hero-image-status').innerText = 'SAVED & LIVE';
+                alert('Foto profil berhasil diunggah dan disimpan!');
             } else {
                 const message = (data && data.message) ? data.message : 'Upload failed';
                 alert(message);
@@ -793,10 +801,32 @@
     }
 
     function removeHeroImage() {
-        const defaultImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150';
-        document.getElementById('hero-image-thumb').src = defaultImage;
-        document.getElementById('input-hero-image').value = defaultImage;
-        document.getElementById('hero-image-status').innerText = 'REMOVED';
+        if(!confirm('Hapus foto profil dan kembalikan ke avatar default?')) return;
+        fetch('{{ route('dashboard.remove.hero') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const defaultImage = (data && data.url) ? data.url : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150';
+            document.getElementById('hero-image-thumb').src = defaultImage;
+            document.getElementById('input-hero-image').value = defaultImage;
+            if(document.getElementById('input-hero-image-url')) {
+                document.getElementById('input-hero-image-url').value = '';
+            }
+            document.getElementById('hero-image-status').innerText = 'REMOVED';
+            alert('Foto profil berhasil direset ke avatar default.');
+        })
+        .catch(err => {
+            console.error(err);
+            const defaultImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150';
+            document.getElementById('hero-image-thumb').src = defaultImage;
+            document.getElementById('input-hero-image').value = defaultImage;
+            document.getElementById('hero-image-status').innerText = 'REMOVED';
+        });
     }
 
     function uploadCvDocument(event) {

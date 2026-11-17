@@ -10,7 +10,9 @@ use App\Models\PortfolioService;
 use App\Models\PortfolioSetting;
 use App\Models\PortfolioSkill;
 use App\Models\PortfolioStat;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class CmsController extends Controller
 {
@@ -31,24 +33,55 @@ class CmsController extends Controller
         return view('dashboard', compact('data', 'inquiries'));
     }
 
-    public function uploadImage(Request $request)
+    public function uploadImage(Request $request): JsonResponse
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        $path = $request->file('image')->store('portfolio', 'public');
-        $url = '/storage/'.$path;
+        $file = $request->file('image');
+        $dataUrl = $this->convertToOptimizedDataUrl($file);
 
-        return response()->json(['success' => true, 'url' => $url]);
+        try {
+            $file->store('portfolio', 'public');
+        } catch (\Throwable $e) {
+            // Ignore for read-only serverless filesystems
+        }
+
+        return response()->json([
+            'success' => true,
+            'url' => $dataUrl,
+        ]);
     }
 
-    public function uploadHeroImage(Request $request)
+    public function uploadHeroImage(Request $request): JsonResponse
     {
-        return $this->uploadImage($request);
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ]);
+
+        $file = $request->file('image');
+        $dataUrl = $this->convertToOptimizedDataUrl($file);
+
+        try {
+            $file->store('portfolio', 'public');
+        } catch (\Throwable $e) {
+            // Ignore for read-only serverless filesystems
+        }
+
+        PortfolioSetting::updateOrCreate(
+            ['key' => 'hero_image'],
+            ['value' => $dataUrl]
+        );
+
+        return response()->json([
+            'success' => true,
+            'url' => $dataUrl,
+            'message' => 'Profile photo updated successfully',
+        ]);
     }
 
-    public function removeHeroImage()
+    public function removeHeroImage(): JsonResponse
     {
         $defaultImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150';
         PortfolioSetting::updateOrCreate(
@@ -57,6 +90,65 @@ class CmsController extends Controller
         );
 
         return response()->json(['success' => true, 'url' => $defaultImage]);
+    }
+
+    private function convertToOptimizedDataUrl(UploadedFile $file): string
+    {
+        $mimeType = $file->getMimeType() ?: 'image/jpeg';
+
+        try {
+            if (function_exists('imagecreatefromstring') && function_exists('imagejpeg')) {
+                $rawContent = file_get_contents($file->getPathname());
+                $srcImage = @imagecreatefromstring($rawContent);
+
+                if ($srcImage !== false) {
+                    $origWidth = imagesx($srcImage);
+                    $origHeight = imagesy($srcImage);
+
+                    $maxDim = 1200;
+                    $ratio = min($maxDim / $origWidth, $maxDim / $origHeight, 1.0);
+                    $newWidth = (int) round($origWidth * $ratio);
+                    $newHeight = (int) round($origHeight * $ratio);
+
+                    $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+                    if (in_array($mimeType, ['image/png', 'image/webp'])) {
+                        imagealphablending($dstImage, false);
+                        imagesavealpha($dstImage, true);
+                        $transparent = imagecolorallocatealpha($dstImage, 255, 255, 255, 127);
+                        imagefilledrectangle($dstImage, 0, 0, $newWidth, $newHeight, $transparent);
+                    }
+
+                    imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+                    ob_start();
+                    if ($mimeType === 'image/png') {
+                        imagepng($dstImage, null, 7);
+                        $outputMime = 'image/png';
+                    } elseif ($mimeType === 'image/webp' && function_exists('imagewebp')) {
+                        imagewebp($dstImage, null, 85);
+                        $outputMime = 'image/webp';
+                    } else {
+                        imagejpeg($dstImage, null, 85);
+                        $outputMime = 'image/jpeg';
+                    }
+                    $compressedData = ob_get_clean();
+
+                    imagedestroy($srcImage);
+                    imagedestroy($dstImage);
+
+                    if (! empty($compressedData)) {
+                        return 'data:'.$outputMime.';base64,'.base64_encode($compressedData);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall back to direct file encoding below
+        }
+
+        $rawBytes = file_get_contents($file->getPathname());
+
+        return 'data:'.$mimeType.';base64,'.base64_encode($rawBytes);
     }
 
     public function viewCv()

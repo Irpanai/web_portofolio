@@ -58,15 +58,13 @@
             <div class="mb-6">
                 <label for="email" class="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase mb-2">CREDENTIAL_ID (EMAIL)</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                       class="w-full bg-[#0a0a0a] border border-[#333] text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-white focus:bg-[#1a1a1a] transition-colors"
-                       placeholder="admin@portofolio.com">
+                       class="w-full bg-[#0a0a0a] border border-[#333] text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-white focus:bg-[#1a1a1a] transition-colors">
             </div>
 
             <div class="mb-8">
                 <label for="password" class="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase mb-2">ACCESS_KEY (PASSWORD)</label>
                 <input id="password" type="password" name="password" required
-                       class="w-full bg-[#0a0a0a] border border-[#333] text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-white focus:bg-[#1a1a1a] transition-colors"
-                       placeholder="••••••••">
+                       class="w-full bg-[#0a0a0a] border border-[#333] text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-white focus:bg-[#1a1a1a] transition-colors">
             </div>
 
             <button type="submit" class="w-full bg-white text-black font-bold uppercase tracking-widest text-sm py-4 hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2">

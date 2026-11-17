@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('portfolio_settings', function (Blueprint $table) {
             $table->id();
             $table->string('key')->unique();
-            $table->text('value')->nullable();
+            $table->longText('value')->nullable();
             $table->timestamps();
         });
     }
