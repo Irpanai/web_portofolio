@@ -11,7 +11,6 @@ use App\Models\PortfolioSetting;
 use App\Models\PortfolioSkill;
 use App\Models\PortfolioStat;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class CmsController extends Controller
 {
@@ -39,7 +38,7 @@ class CmsController extends Controller
         ]);
 
         $path = $request->file('image')->store('portfolio', 'public');
-        $url = Storage::disk('public')->url($path);
+        $url = '/storage/'.$path;
 
         return response()->json(['success' => true, 'url' => $url]);
     }
@@ -60,12 +59,74 @@ class CmsController extends Controller
         return response()->json(['success' => true, 'url' => $defaultImage]);
     }
 
+    public function viewCv()
+    {
+        $setting = PortfolioSetting::where('key', 'cv_file')->value('value');
+        $relativePath = $setting ? ltrim($setting, '/') : 'storage/cv/cv-muhammad-irfan-akbar.pdf';
+        $fullPath = public_path($relativePath);
+
+        if (! file_exists($fullPath)) {
+            $fullPath = storage_path('app/public/cv/cv-muhammad-irfan-akbar.pdf');
+        }
+
+        if (! file_exists($fullPath)) {
+            $fullPath = public_path('cv/cv-muhammad-irfan-akbar.pdf');
+        }
+
+        if (! file_exists($fullPath)) {
+            abort(404, 'CV file not found.');
+        }
+
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="CV_Muhammad_Irfan_Akbar.pdf"',
+        ]);
+    }
+
+    public function downloadCv()
+    {
+        $setting = PortfolioSetting::where('key', 'cv_file')->value('value');
+        $relativePath = $setting ? ltrim($setting, '/') : 'storage/cv/cv-muhammad-irfan-akbar.pdf';
+        $fullPath = public_path($relativePath);
+
+        if (! file_exists($fullPath)) {
+            $fullPath = storage_path('app/public/cv/cv-muhammad-irfan-akbar.pdf');
+        }
+
+        if (! file_exists($fullPath)) {
+            $fullPath = public_path('cv/cv-muhammad-irfan-akbar.pdf');
+        }
+
+        if (! file_exists($fullPath)) {
+            abort(404, 'CV file not found.');
+        }
+
+        return response()->download($fullPath, 'CV_Muhammad_Irfan_Akbar.pdf');
+    }
+
+    public function uploadCv(Request $request)
+    {
+        $request->validate([
+            'cv' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        $path = $request->file('cv')->storeAs('cv', 'cv-muhammad-irfan-akbar.pdf', 'public');
+        $url = '/storage/'.$path;
+
+        PortfolioSetting::updateOrCreate(
+            ['key' => 'cv_file'],
+            ['value' => $url]
+        );
+
+        return response()->json(['success' => true, 'url' => $url]);
+    }
+
     public function save(Request $request)
     {
         $payload = $request->json()->all();
 
         if (! empty($payload)) {
-            $settingKeys = ['hero_name', 'hero_role', 'hero_availability_status', 'hero_bio_en', 'hero_bio_id', 'contact_email', 'core_tools', 'hero_image', 'hero_image_align', 'evolution_title_en', 'evolution_desc_en'];
+            $settingKeys = ['hero_name', 'hero_role', 'hero_availability_status', 'hero_bio_en', 'hero_bio_id', 'contact_email', 'core_tools', 'hero_image', 'hero_image_align', 'evolution_title_en', 'evolution_desc_en', 'cv_file'];
             foreach ($settingKeys as $key) {
                 if (isset($payload[$key])) {
                     PortfolioSetting::updateOrCreate(['key' => $key], ['value' => $payload[$key]]);

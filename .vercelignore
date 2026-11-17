@@ -1,0 +1,16 @@
+.env
+.env.*
+.git
+.github
+node_modules
+vendor
+tests
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+recovered.txt
+search_results.txt
+search_results_utf8.txt
+extract.py
+extract.php

@@ -166,6 +166,25 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="upload-box" style="margin-top: 16px;">
+                            <input type="hidden" id="input-cv-file" value="{{ $data['cv_file'] ?? '/storage/cv/cv-muhammad-irfan-akbar.pdf' }}">
+                            <input type="file" id="cv-upload-file" style="display:none;" accept="application/pdf" onchange="uploadCvDocument(event)">
+                            <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: #222; border: 1px solid #333; border-radius: 4px; flex-shrink: 0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <div class="d-flex justify-between" style="margin-bottom: 4px;">
+                                    <h3 style="font-size: 12px; font-weight: 600;">Curriculum Vitae (CV) PDF Asset</h3>
+                                    <span class="mono text-xs text-muted" id="cv-status">PDF LINKED</span>
+                                </div>
+                                <p class="text-muted text-xs" style="margin-bottom: 12px;">Active PDF: <a href="{{ route('cv.view') }}" target="_blank" class="mono" style="color: #10b981; text-decoration: underline;">View Current CV &nearr;</a></p>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-outline mono text-xs" onclick="document.getElementById('cv-upload-file').click()">REPLACE CV (PDF)</button>
+                                    <a href="{{ route('cv.download') }}" class="btn btn-ghost mono text-xs" style="display: inline-flex; align-items: center;">DOWNLOAD CV</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -587,6 +606,7 @@
         payload.hero_bio_en = document.getElementById('input-hero-bio-en').value;
         payload.hero_bio_id = document.getElementById('input-hero-bio-id').value;
         payload.contact_email = document.getElementById('input-contact').value;
+        payload.cv_file = document.getElementById('input-cv-file') ? document.getElementById('input-cv-file').value : '';
         
         if (document.getElementById('input-core-tools')) {
             payload.core_tools = document.getElementById('input-core-tools').value;
@@ -777,6 +797,50 @@
         document.getElementById('hero-image-thumb').src = defaultImage;
         document.getElementById('input-hero-image').value = defaultImage;
         document.getElementById('hero-image-status').innerText = 'REMOVED';
+    }
+
+    function uploadCvDocument(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            alert('File harus berupa dokumen PDF (.pdf)');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('cv', file);
+
+        document.getElementById('cv-status').innerText = 'UPLOADING...';
+
+        fetch('{{ route('dashboard.upload.cv') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(async response => {
+            const data = await response.json().catch(() => null);
+            if (response.ok && data && data.success) {
+                document.getElementById('input-cv-file').value = data.url;
+                document.getElementById('cv-status').innerText = 'UPLOADED & ACTIVE';
+                alert('Dokumen CV berhasil diperbarui!');
+            } else {
+                const message = (data && data.message) ? data.message : 'Upload CV gagal';
+                alert(message);
+                document.getElementById('cv-status').innerText = 'FAILED';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Upload error: ' + error.message);
+            document.getElementById('cv-status').innerText = 'ERROR';
+        })
+        .finally(() => {
+            event.target.value = '';
+        });
     }
 
     // Mark As Read

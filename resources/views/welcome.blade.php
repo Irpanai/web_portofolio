@@ -163,10 +163,10 @@
                             <span class="lang-en">Explore Projects &darr;</span>
                             <span class="lang-id">Jelajahi Proyek &darr;</span>
                         </a>
-                        <a href="#" class="dark:bg-[#1a1a1a] bg-zinc-50 border dark:border-[#333] border-zinc-200 dark:text-white text-black dark:hover:bg-[#222] hover:bg-zinc-100 font-medium px-6 py-3.5 rounded-lg flex items-center gap-2 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                            <span class="lang-en">Download CV</span>
-                            <span class="lang-id">Unduh CV</span>
+                        <a href="{{ route('cv.view') }}" target="_blank" rel="noopener noreferrer" class="dark:bg-[#1a1a1a] bg-zinc-50 border dark:border-[#333] border-zinc-200 dark:text-white text-black dark:hover:bg-[#222] hover:bg-zinc-100 font-medium px-6 py-3.5 rounded-lg flex items-center gap-2 transition-colors group">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400 group-hover:text-current transition-colors"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            <span class="lang-en">View & Download CV &nearr;</span>
+                            <span class="lang-id">Lihat & Unduh CV &nearr;</span>
                         </a>
                     </div>
                     
@@ -651,7 +651,8 @@
                 <a href="#experience" onclick="toggleMobileMenu()" class="dark:text-zinc-300 text-zinc-700 hover:text-black dark:hover:text-white transition-colors border-b dark:border-[#222] border-zinc-100 pb-3"><span class="lang-en">Experience</span><span class="lang-id">Pengalaman</span></a>
                 <a href="#portfolio" onclick="toggleMobileMenu()" class="dark:text-zinc-300 text-zinc-700 hover:text-black dark:hover:text-white transition-colors border-b dark:border-[#222] border-zinc-100 pb-3"><span class="lang-en">Portfolio</span><span class="lang-id">Portofolio</span></a>
                 <a href="#services" onclick="toggleMobileMenu()" class="dark:text-zinc-300 text-zinc-700 hover:text-black dark:hover:text-white transition-colors border-b dark:border-[#222] border-zinc-100 pb-3"><span class="lang-en">Services</span><span class="lang-id">Layanan</span></a>
-                <a href="#contact" onclick="toggleMobileMenu()" class="dark:text-zinc-300 text-zinc-700 hover:text-black dark:hover:text-white transition-colors pb-3"><span class="lang-en">Contact</span><span class="lang-id">Kontak</span></a>
+                <a href="#contact" onclick="toggleMobileMenu()" class="dark:text-zinc-300 text-zinc-700 hover:text-black dark:hover:text-white transition-colors border-b dark:border-[#222] border-zinc-100 pb-3"><span class="lang-en">Contact</span><span class="lang-id">Kontak</span></a>
+                <a href="{{ route('cv.view') }}" target="_blank" rel="noopener noreferrer" class="dark:text-emerald-400 text-emerald-600 font-semibold transition-colors pb-3 flex items-center justify-between"><span class="lang-en">View CV (PDF) &nearr;</span><span class="lang-id">Lihat CV (PDF) &nearr;</span></a>
             </div>
             <div class="mt-auto flex flex-col gap-4">
                 <!-- Mobile Language Toggle in Sidebar -->
